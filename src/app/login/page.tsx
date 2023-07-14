@@ -1,33 +1,61 @@
 "use client";
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'
-import { Axios } from 'axios';
+import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
 function LoginPage() {
     const [user, setUser] = useState({
-        username: '',
         email: '',
         password: ''
     })
+    const [disabledButton, setdisabledButton] = useState(true)
+    const [isLoading, setisLoading] = useState(false)
 
-    const onLogin = async (e: { preventDefault: () => void; }) => {
+    useEffect(() => {
+        if (user.email.length > 0 && user.password.length > 0) {
+          setdisabledButton(false)
+        } else {
+          setdisabledButton(true)
+        }
+      }, [user])
+
+    const router = useRouter()
+
+    const onLogin = async (e: any) => {
         e.preventDefault();
-        console.log(user)
+        
+        try {
+            setisLoading(true)
+            const res = await axios.post('/api/users/login', user);
+            console.log('Login Success!', res.data);
+            toast.success(`Logged in as: ${res.data?.user}`);
+            router.push('/profile');
+      
+          } catch (error: any) {
+            console.log('Login Error: ', error.message)
+            toast.error(error.message);
+      
+          } finally {
+            setisLoading(false)
+          }
+
     }
 
     return (
         <section className="bg-white">
+            <div><Toaster/></div>
             <div className="lg:grid lg:min-h-screen lg:grid-cols-12">
                 <section
-                    className="relative flex h-32 items-end bg-gray-900 lg:col-span-5 lg:h-full xl:col-span-6"
+                    className="relative hidden lg:flex h-32 items-end  lg:col-span-5 lg:h-full xl:col-span-6"
                 >
                     <img
-                        alt="Night"
-                        src="https://images.unsplash.com/photo-1667453466805-75bbf36e8707?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=htmlFormat&fit=crop&w=870&q=80"
-                        className="absolute inset-0 h-full w-full object-cover opacity-80"
+                        alt="Login"
+                        src="/login.svg"
+                        className="absolute inset-0 h-full w-full"
                     />
                 </section>
 
@@ -37,7 +65,7 @@ function LoginPage() {
                     <div className="max-w-xl lg:max-w-3xl">
                         <div className="relative -mt-16 block">
                             <Link
-                                className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-blue-600 sm:h-20 sm:w-20"
+                                className="mt-16 lg:mt-0 inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-blue-600 sm:h-20 sm:w-20"
                                 href="/"
                             >
                                 <span className="sr-only">Home</span>
@@ -81,20 +109,30 @@ function LoginPage() {
                                 />
                             </div>
 
-                            <div className="col-span-6">
-                                <a href="#" className="text-blue-700 underline-offset-1 underline font-light">
+                            <div className="col-span-6 -my-2">
+                                <a href="#" className="text-stone-700 text-sm underline-offset-1 underline font-light">
                                     Forgot Password?
                                 </a>
                             </div>
 
 
                             <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                                <button
+                                {disabledButton ? (
+                                    <button
+                                    disabled
                                     type="submit"
-                                    className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 hover:shadow-md hover:shadow-blue-500"
+                                    className="inline-block shrink-0 rounded-md border border-blue-400 bg-blue-400 px-12 py-3 text-sm font-medium text-white cursor-not-allowed"
                                 >
                                     Login
                                 </button>
+                                ):(
+                                    <button
+                                    type="submit"
+                                    className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition-transform hover:shadow-lg hover:scale-105 hover:shadow-blue-500"
+                                >
+                                    {isLoading ? 'Loading...' : 'Login'}
+                                </button>
+                                )}
 
                                 <p className="mt-4 text-sm text-gray-500 sm:mt-0">
                                     New here?{' '}

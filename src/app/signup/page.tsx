@@ -1,33 +1,60 @@
 "use client";
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation'
-import { Axios } from 'axios';
+import axios from "axios";
+import { toast } from 'react-hot-toast';
 
 function SignUpPage() {
+  const router = useRouter();
+
   const [user, setUser] = useState({
     username: '',
     email: '',
     password: ''
   })
+  const [disabledButton, setdisabledButton] = useState(true);
+  const [isLoading, setisLoading] = useState(false)
 
-  const onSignup = async (e: { preventDefault: () => void; }) => {
+  useEffect(() => {
+    if (user.email.length > 0 && user.password.length > 0 && user.username.length > 0) {
+      setdisabledButton(false)
+    } else {
+      setdisabledButton(true)
+    }
+  }, [user])
+
+
+  const onSignup = async (e: any) => {
     e.preventDefault();
-    console.log(user)
+    try {
+      setisLoading(true)
+      const res = await axios.post('/api/users/signup', user);
+      console.log('SignUp Success!', res.data);
+      router.push('/login');
+
+    } catch (error: any) {
+      console.log('Signup Error: ', error.message)
+      toast.error(error.message);
+
+    } finally {
+      setisLoading(false)
+    }
   }
 
   return (
     <section className="bg-white">
       <div className="lg:grid lg:min-h-screen lg:grid-cols-12">
         <section
-          className="relative flex h-32 items-end bg-gray-900 lg:col-span-5 lg:h-full xl:col-span-6"
+          className="relative hidden lg:flex h-32 items-end  lg:col-span-5 lg:h-full xl:col-span-6"
         >
           <img
-            alt="Night"
-            src="https://images.unsplash.com/photo-1667453466805-75bbf36e8707?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=htmlFormat&fit=crop&w=870&q=80"
-            className="absolute inset-0 h-full w-full object-cover opacity-80"
+            alt="Sign Up"
+            loading='lazy'
+            src="/signup.svg"
+            className="absolute h-full w-full"
           />
         </section>
 
@@ -37,7 +64,7 @@ function SignUpPage() {
           <div className="max-w-xl lg:max-w-3xl">
             <div className="relative -mt-16 block">
               <Link
-                className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-blue-600 sm:h-20 sm:w-20"
+                className="mt-16 lg:mt-0 inline-flex h-16 w-16 items-center justify-center rounded-full bg-white text-blue-600 sm:h-20 sm:w-20"
                 href="/"
               >
                 <span className="sr-only">Home</span>
@@ -49,7 +76,7 @@ function SignUpPage() {
               </h1>
             </div>
 
-            <form className="mt-8 grid grid-cols-6 gap-6">
+            <form className="mt-8 grid grid-cols-6 gap-6" onSubmit={onSignup}>
 
               <div className="col-span-6 sm:col-span-3">
                 <label
@@ -133,13 +160,22 @@ function SignUpPage() {
               </div>
 
               <div className="col-span-6 sm:flex sm:items-center sm:gap-4">
-                <button
-                  type="submit"
-                  onClick={onSignup}
-                  className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 hover:shadow-md hover:shadow-blue-500"
-                >
-                  Create an account
-                </button>
+                {disabledButton ? (
+                  <button
+                    type="submit"
+                    disabled
+                    className="inline-block shrink-0 rounded-md border border-blue-400 bg-blue-400 px-12 py-3 text-sm font-medium text-white transition-colors cursor-not-allowed"
+                  >
+                    Create an account
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition-transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500"
+                  >
+                    {isLoading ? 'Loading...' : 'Create an account'}
+                  </button>
+                )}
 
                 <p className="mt-4 text-sm text-gray-500 sm:mt-0">
                   Already have an account?{' '}

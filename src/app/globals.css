@@ -2,3 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.dd{
+    @apply mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0;
+}
+
+.dt{
+    @apply text-sm font-medium leading-6 text-gray-900;
+}
